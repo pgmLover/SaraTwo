@@ -9,8 +9,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Password {
 
-
-    //error message
     public String message() default "must contain jtp";
     //represents group of constraints
     public Class<?>[] groups() default {};
