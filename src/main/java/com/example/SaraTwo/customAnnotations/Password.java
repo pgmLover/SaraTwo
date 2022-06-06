@@ -14,4 +14,5 @@ public @interface Password {
     public Class<?>[] groups() default {};
     //represents additional information about annotation
     public Class<? extends Payload>[] payload() default {};
+
 }
