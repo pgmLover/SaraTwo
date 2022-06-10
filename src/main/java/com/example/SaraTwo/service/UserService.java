@@ -1,18 +1,22 @@
 package com.example.SaraTwo.service;
 
+import com.example.SaraTwo.dto.LoginRequest;
 import com.example.SaraTwo.dto.RegisterRequest;
 import com.example.SaraTwo.entity.Documents;
 import com.example.SaraTwo.entity.User;
 import com.example.SaraTwo.repository.FileRepository;
 import com.example.SaraTwo.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededException;
 import org.apache.tomcat.util.http.fileupload.impl.SizeLimitExceededException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -21,15 +25,20 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @Slf4j
-public class UserService {
+public class UserService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
+
+
+    private AuthenticationManager authenticationManager;
 
     @Autowired
     private FileRepository fileRepository;
@@ -39,10 +48,18 @@ public class UserService {
 
 
     public String register(RegisterRequest registerRequest) {
+        String encodePassword = new BCryptPasswordEncoder().encode(registerRequest.getPassword());
         userRepository.save(User.builder().name(registerRequest.getName()).email(registerRequest.getEmail())
-                .phone(registerRequest.getPhone()).password(registerRequest.getPassword()).build());
+                .phone(registerRequest.getPhone()).password(encodePassword).build());
         return "User created successfully";
     }
+
+
+    public String passwordVerifying(LoginRequest loginRequest) {
+
+        return "Successfully verified";
+    }
+
 
     public boolean fileUpload(MultipartFile file) {
         boolean fileUploadStatus = false;
@@ -78,5 +95,17 @@ public class UserService {
             return true;
         } else
             return false;
+    }
+
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+        Optional<User> user = userRepository.findByEmail(username);
+        if (user.isEmpty()) {
+            throw new UsernameNotFoundException("User not found");
+        }
+        return new org.springframework.security.core.userdetails.User(user.get().getEmail(), user.get().getPassword(), new ArrayList<>());
+
     }
 }

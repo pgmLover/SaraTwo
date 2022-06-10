@@ -1,15 +1,14 @@
 package com.example.SaraTwo.controller;
 
+import com.example.SaraTwo.dto.LoginRequest;
 import com.example.SaraTwo.dto.RegisterRequest;
 import com.example.SaraTwo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
 
@@ -21,10 +20,22 @@ public class UserController {
 
 
     @PostMapping("/register")
-    public String register(@RequestBody @Valid RegisterRequest registerRequest) {
+    public ModelAndView register(@RequestBody @Valid RegisterRequest registerRequest) {
 
-        return userService.register(registerRequest);
+        String str = userService.register(registerRequest);
+        return new ModelAndView("redirect:/fileupload");
     }
+
+    @GetMapping("/welcome")
+    public String home() {
+        return "Welcome to mini project";
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
+        return ResponseEntity.ok(userService.passwordVerifying(loginRequest));
+    }
+
 
     @PostMapping("/fileupload")
     public ResponseEntity<String> fileUpload(@RequestParam("file") MultipartFile file) {
